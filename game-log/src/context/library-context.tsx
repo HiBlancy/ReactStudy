@@ -50,7 +50,6 @@ function migrateFromV1(raw: Record<string, unknown>): LibraryState {
       playMode,
       modded,
       status,
-      completedWith,
       linkedSharedListId,
     } = e;
     if (
@@ -78,8 +77,6 @@ function migrateFromV1(raw: Record<string, unknown>): LibraryState {
       playMode: playMode as LibraryEntry["playMode"],
       modded,
       status: status as LibraryEntry["status"],
-      completedWith:
-        typeof completedWith === "string" ? completedWith : undefined,
       linkedSharedListId:
         typeof linkedSharedListId === "string"
           ? linkedSharedListId

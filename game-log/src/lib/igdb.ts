@@ -58,9 +58,11 @@ export async function getTwitchAppAccessToken(): Promise<string | null> {
 
 function normalizeCoverUrl(url: string | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith("//")) return `https:${url}`;
-  if (url.startsWith("http")) return url;
-  return `https://${url}`;
+  // Reemplaza el tamaño thumbnail por cover_big (mejor calidad)
+  let fixedUrl = url.replace('t_thumb', 't_cover_big');
+  if (fixedUrl.startsWith("//")) return `https:${fixedUrl}`;
+  if (fixedUrl.startsWith("http")) return fixedUrl;
+  return `https://${fixedUrl}`;
 }
 
 export function igdbGameToSummary(game: IgdbGameRow): ApiGameSummary {

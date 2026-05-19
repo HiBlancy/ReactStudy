@@ -142,17 +142,8 @@ export function EntryEditorModal({
             </select>
           </label>
 
-          {status === "completed" && playMode === "with_someone" && (
+          {(status === "playing" || status === "completed") && playMode === "with_someone" && (
             <>
-              <label className="flex flex-col gap-1 font-medium">
-                ¿Con quién lo completaste?
-                <input
-                  value={completedWith}
-                  onChange={(e) => setCompletedWith(e.target.value)}
-                  placeholder="Nombre o apodo de la persona"
-                  className="rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-                />
-              </label>
               <label className="flex flex-col gap-1 font-medium">
                 Asociar a lista compartida (opcional)
                 <select

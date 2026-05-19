@@ -7,6 +7,7 @@ import type { LibraryEntry } from "@/types/library";
 import { useLibrary } from "@/context/library-context";
 import { EntryEditorModal } from "@/components/entry-editor-modal";
 
+
 function toDraft(entry: LibraryEntry): Omit<LibraryEntry, "updatedAt"> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- quitamos updatedAt del objeto guardado
   const { updatedAt, ...rest } = entry;
@@ -20,7 +21,7 @@ const statusLabel: Record<LibraryEntry["status"], string> = {
 };
 
 export function LibraryHome() {
-  const { entries, upsertEntry, removeEntry } = useLibrary();
+  const { entries, upsertEntry, removeEntry, sharedLists } = useLibrary();
   const [editing, setEditing] = useState<LibraryEntry | null>(null);
 
   const counts = useMemo(() => {
@@ -86,13 +87,13 @@ export function LibraryHome() {
               key={entry.igdbId}
               className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 sm:flex-row sm:items-center dark:border-zinc-800"
             >
-              <div className="relative h-20 w-14 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900 sm:h-24 sm:w-[4.5rem]">
+              <div className="relative aspect-[2/3] w-14 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-900 sm:w-[4.5rem]">
                 {entry.backgroundImage ? (
                   <Image
                     src={entry.backgroundImage}
                     alt={entry.name}
                     fill
-                    className="object-cover"
+                    className="object-contain"  // en lugar de object-cover
                     sizes="72px"
                     unoptimized
                   />
@@ -114,21 +115,40 @@ export function LibraryHome() {
                   <span className="rounded-full bg-zinc-100 px-2 py-0.5 dark:bg-zinc-900">
                     Nota: {entry.rating}/10
                   </span>
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 dark:bg-zinc-900">
-                    {entry.playMode === "solo" ? "Solo" : "Con alguien"}
-                  </span>
+
+                  {/* Badge de modo de juego con nombre del compañero si existe */}
+                  {entry.playMode === "solo" ? (
+                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 dark:bg-zinc-900">Solo</span>
+                  ) : (
+                    (() => {
+                      // Buscar el nombre: priorizar lista compartida, luego completedWith
+                      let partnerName = null;
+                      if (entry.linkedSharedListId) {
+                        const found = sharedLists.find(list => list.id === entry.linkedSharedListId);
+                        partnerName = found?.partnerName ?? null;
+                      }
+                      if (!partnerName && entry.completedWith) {
+                        partnerName = entry.completedWith;
+                      }
+                      return partnerName ? (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+                          Con {partnerName}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 dark:bg-zinc-900">
+                          Con alguien
+                        </span>
+                      );
+                    })()
+                  )}
+
                   {entry.modded && (
                     <span className="rounded-full bg-violet-100 px-2 py-0.5 text-violet-900 dark:bg-violet-950 dark:text-violet-200">
                       Mods
                     </span>
                   )}
-                  {entry.status === "completed" &&
-                    entry.completedWith && (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-                        Con {entry.completedWith}
-                      </span>
-                    )}
                 </div>
+
               </div>
               <div className="flex shrink-0 gap-2">
                 <button
@@ -157,21 +177,24 @@ export function LibraryHome() {
             </li>
           ))}
         </ul>
-      )}
+      )
+      }
 
-      {editing && (
-        <EntryEditorModal
-          key={editing.igdbId}
-          gameName={editing.name}
-          variant="edit"
-          draft={toDraft(editing)}
-          onClose={() => setEditing(null)}
-          onSave={(e) => {
-            upsertEntry(e);
-            setEditing(null);
-          }}
-        />
-      )}
-    </div>
+      {
+        editing && (
+          <EntryEditorModal
+            key={editing.igdbId}
+            gameName={editing.name}
+            variant="edit"
+            draft={toDraft(editing)}
+            onClose={() => setEditing(null)}
+            onSave={(e) => {
+              upsertEntry(e);
+              setEditing(null);
+            }}
+          />
+        )
+      }
+    </div >
   );
 }
