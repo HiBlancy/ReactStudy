@@ -56,12 +56,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: "IGDB no disponible",
-        detail: igdb.message.slice(0, 500),
         status: igdb.status,
       },
       { status: 502 },
     );
   }
+  console.log("📦 TWITCH_CLIENT_ID existe?", !!process.env.TWITCH_CLIENT_ID);
+  console.log("📦 TWITCH_CLIENT_SECRET existe?", !!process.env.TWITCH_CLIENT_SECRET);
 
   return NextResponse.json({ results: igdb.games, mock: false });
 }
